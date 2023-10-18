@@ -5,25 +5,25 @@ import Avatar from "./Avatar"
 import MenuItem from "./MenuItem"
 import { useCallback, useState } from "react"
 
-const UserMenu = () =>{
-    const [isOpen , setIsOpen] = useState(false);
+const UserMenu = () => {
+    const [isOpen, setIsOpen] = useState(false);
 
-    const toggleOpen = useCallback(()=>{
-        setIsOpen((prev)=>!prev)
-    },[]);
+    const toggleOpen = useCallback(() => {
+        setIsOpen((prev) => !prev)
+    }, []);
 
 
-    return(
+    return (
         <>
-        <div className="relative">
-            <div 
-                className="
+            <div className="relative">
+                <div
+                    className="
                 flex
                 flex-row
                 items-center
                 gap-3
                 ">
-                    <div 
+                    <div
                         className="
                         hidden
                         md:block
@@ -36,8 +36,8 @@ const UserMenu = () =>{
                         transition
                         cursor-pointer
                         ">
-                            Become a host
-                        </div>
+                        Become a host
+                    </div>
                     <div
                         onClick={toggleOpen}
                         className="
@@ -55,21 +55,21 @@ const UserMenu = () =>{
                         transition
                         cursor-pointer
                         ">
-                            <AiOutlineMenu/>
-                            <div
-                                className="
+                        <AiOutlineMenu />
+                        <div
+                            className="
                                 hidden
                                 md:block
                                 ">
-                                    <Avatar/>
-                            </div>
+                            <Avatar />
                         </div>
+                    </div>
 
                 </div>
-        </div>
-        {isOpen && (
-            <div
-            className=" 
+            </div>
+            {isOpen && (
+                <div
+                    className=" 
             absolute
             rounded-xl
             shadow-md
@@ -81,25 +81,23 @@ const UserMenu = () =>{
             top-12
             text-sm
             ">
-                <div className="
+                    <div className="
                 flex
                 flex-col
                 cursor-pointer">
-                    <MenuItem 
-                        label="Login"
-                        onClick={()=>{}}
-                    />
-                    <MenuItem 
-                        label="Signup"
-                        onClick={()=>{}}
-                    />
+                        <MenuItem
+                            label="Login"
+                            onClick={() => { }}
+                        />
+                        <MenuItem
+                            label="Signup"
+                            onClick={() => { }}
+                        />
+                    </div>
                 </div>
-            </div>
+            )
 
-
-        )
-
-        } 
+            }
         </>
     )
 }
