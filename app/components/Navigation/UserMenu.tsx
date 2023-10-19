@@ -4,9 +4,11 @@ import { AiOutlineMenu } from "react-icons/ai"
 import Avatar from "./Avatar"
 import MenuItem from "./MenuItem"
 import { useCallback, useState } from "react"
+import useRegisterModel from "@/app/hooks/useRegister"
 
 const UserMenu = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const RegisterModel = useRegisterModel()
 
     const toggleOpen = useCallback(() => {
         setIsOpen((prev) => !prev)
@@ -91,7 +93,10 @@ const UserMenu = () => {
                         />
                         <MenuItem
                             label="Signup"
-                            onClick={() => { }}
+                            onClick={() => {
+                                RegisterModel.onOpen()
+                                setIsOpen(false)
+                            }}
                         />
                     </div>
                 </div>
