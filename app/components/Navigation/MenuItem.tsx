@@ -10,6 +10,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ label, onClick }) => {
         <div
             onClick={onClick}
             className="
+                    z-10
                     font-semibold
                     py-3
                     px-4

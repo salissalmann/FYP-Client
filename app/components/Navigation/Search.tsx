@@ -6,15 +6,15 @@ const Search = () => {
         <>
             <div
                 className='
-                border-[1px]
                 w-full
                 md:w-[auto]
-                py-2
-                rounded-full
+                py-1
+                rounded
                 shadow-sm
                 hover:shadow-md
                 transition
                 cursor-pointer
+               text-gray-400
                 '>
                 <div
                     className='
@@ -26,62 +26,52 @@ const Search = () => {
                     <div
                         className='
                         text-sm
-                        font-semibold
                         px-6'
                     >
-                        Start your search
+                        Home
                     </div>
                     <div
                         className='
                         hidden
                         sm:block
                         text-sm
-                        font-semibold
                         px-6
-                        border-x-[1px]
                         flex-1
                         text-center
                         '
                     >
-                        Add guests
+                        Docs
                     </div>
                     <div
                         className='
+                        hidden
+                        sm:block
                         text-sm
-                        pl-6
-                        pr-4
-                        text-gray-600
-                        flex
-                        flex-row
-                        items-center
-                        gap-3
-                        '>
-                        <div
-                            className='
-                            hidden 
-                            sm:block
-                            '
-                        >
-                            Anywere
-                        </div>
-                        <div
-                            className='
-                            p-2
-                            bg-rose-500
-                            rounded-full
-                            text-white
-                            '>
-                            <BiSearch />
-                        </div>
+                        px-6
+                        flex-1
+                        text-center
+                        '
+                    >
+                        Templates
                     </div>
-
-
+                    <div
+                        className='
+                        hidden
+                        sm:block
+                        text-sm
+                        px-6
+                        flex-1
+                        text-center
+                        '
+                    >
+                        Blogs
+                    </div>
 
 
                 </div>
 
 
-            </div>
+            </div >
 
         </>
     )

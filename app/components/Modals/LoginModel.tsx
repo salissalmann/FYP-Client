@@ -1,28 +1,28 @@
 'use client'
-import React, { useCallback, useEffect, useState } from "react";
-import { IoMdClose } from "react-icons/io";
-import Button from "../Button";
-import axios from 'axios'
-import { AiFillGithub } from "react-icons/ai";
-import { FcGoogle } from "react-icons/fc"
+import React, { useState, useEffect } from "react";
 import {
+    FieldErrors,
     FieldValues,
-    useForm,
     SubmitHandler,
     UseFormRegister,
-    FieldErrors
-}
-    from "react-hook-form";
+    useForm
+} from "react-hook-form";
+import { AiFillGithub } from "react-icons/ai";
+import Button from "../Button";
 
+import useLoginModel from "@/app/hooks/useLogin";
 import useRegisterModel from "@/app/hooks/useRegister";
-import Modal from "./Modal";
 import { notification } from "antd";
 import { signIn } from "next-auth/react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import Modal from "./Modal";
 
-interface RegisterModalProps { }
-const RegisterModal: React.FC<RegisterModalProps> = ({ }) => {
 
+interface LoginModalProps { }
+const LoginModalCom: React.FC<LoginModalProps> = ({ }) => {
+
+    const router = useRouter()
+    const LoginModal = useLoginModel()
     const RegisterModal = useRegisterModel()
     const [isLoading, setIsLoading] = useState(false)
 
@@ -32,7 +32,6 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ }) => {
         formState: { errors },
     } = useForm<FieldValues>({
         defaultValues: {
-            name: '',
             email: '',
             password: ''
         }
@@ -40,63 +39,36 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ }) => {
 
     const OnSubmit: SubmitHandler<FieldValues> = (data) => {
         setIsLoading(true)
-        console.log(data)
-        axios.post('/api/register', data)
-            .then(res => {
-                setIsLoading(false)
-                RegisterModal.onClose()
-                notification.success({
-                    message: 'Success',
-                    description: 'Account created successfully'
-                })
-            })
-            .catch(err => {
-                setIsLoading(false)
-                console.log(err)
-                notification.error({
-                    message: 'Error',
-                    description: 'Something went wrong'
-                })
-            })
+        signIn('credentials', {
+            email: data.email,
+            password: data.password,
+            redirect: false
+        }).then((callback) => {
+            if (callback?.ok) {
+                notification.success(
+                    {
+                        message: 'Login Success',
+                        description: 'You have successfully logged in',
+                        type: 'success'
+                    }
+                )
+                router.refresh()
+                LoginModal.onClose()
+            }
+
+            if (callback?.error) {
+                notification.error(
+                    {
+                        message: 'Login Failed',
+                        description: 'Invalid Credentials',
+                        type: 'error'
+                    }
+                )
+            }
+        })
     }
 
-    const Body = (
-        <>
-            <div className="flex flex-col gap-4">
-                <Heading
-                    title="Sign up"
-                    subtitle="Already have an account?"
-                />
-                <Input
-                    id="name"
-                    label="Name"
-                    type="text"
-                    register={register}
-                    errors={errors}
-                    required
-                />
-                <Input
-                    id="email"
-                    label="Email"
-                    type="email"
-                    register={register}
-                    errors={errors}
-                    required
-                />
-                <Input
-                    id="password"
-                    label="Password"
-                    type="password"
-                    register={register}
-                    errors={errors}
-                    required
-                />
-            </div>
-        </>
-    )
-
     const GITHUB_CLIENT_ID = "b55016a7680d8e89d8ba"
-    const [accessToken, setAccessToken] = useState('')
     const [reRender, setReRender] = useState(false)
 
 
@@ -126,8 +98,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ }) => {
             GetAccessToken(code)
             //redirect to dashboard
         }
-    })
-
+    }, [])
 
     function ContinueWithGithub() {
         const githubUrl = 'https://github.com/login/oauth/authorize?client_id=' + GITHUB_CLIENT_ID;
@@ -136,18 +107,32 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ }) => {
 
 
 
-    const GetGithubUserData = async () => {
-        const Response = await fetch("http://127.0.0.1:5000/users/getUserRepos", {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem("accessToken")
-            }
-        })
-        const Data = await Response.json()
-        console.log(Data)
-        return Data
-    }
-
+    const Body = (
+        <>
+            <div className="flex flex-col gap-4">
+                <Heading
+                    title="Welcome Back"
+                    subtitle="Login to your account"
+                />
+                <Input
+                    id="email"
+                    label="Email"
+                    type="email"
+                    register={register}
+                    errors={errors}
+                    required
+                />
+                <Input
+                    id="password"
+                    label="Password"
+                    type="password"
+                    register={register}
+                    errors={errors}
+                    required
+                />
+            </div>
+        </>
+    )
 
     const FooterContent = (
         <div className="flex flex-col gap-4 mt-3">
@@ -155,7 +140,11 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ }) => {
                 outline
                 label="Continue with Github"
                 onClick={() => {
-                    ContinueWithGithub()
+                    if (localStorage.getItem("accessToken") === null)
+                        ContinueWithGithub()
+                    else {
+                        window.location.href = "http://127.0.0.1:3000/dashboard"
+                    }
                 }}
                 icon={AiFillGithub}
             />
@@ -170,8 +159,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ }) => {
                     <div className=" border-neutral-800
                     cursor-pointer hover:underline"
                         onClick={() => {
-                            GetGithubUserData()
-                            RegisterModal.onClose()
+                            LoginModal.onClose()
                         }}>Login </div>
                 </div>
             </div>
@@ -179,14 +167,13 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ }) => {
 
     )
 
-
     return (
         <>
             <Modal
                 disabled={isLoading}
-                isOpen={RegisterModal.isOpen}
-                onClose={RegisterModal.onClose}
-                title="Register"
+                isOpen={LoginModal.isOpen}
+                onClose={LoginModal.onClose}
+                title="Login"
                 actionLabel="Continue"
                 onSubmit={handleSubmit(OnSubmit)}
                 body={Body}
@@ -196,11 +183,11 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ }) => {
     )
 }
 
-export default RegisterModal;
+export default LoginModalCom;
 
 interface HeadingProps {
-    title?: string;
-    subtitle?: string;
+    title: string;
+    subtitle: string;
     center?: boolean;
 }
 
@@ -249,12 +236,13 @@ const Input: React.FC<InputProps> = ({
                     w-full
                     p-2
                     font-light
-                    bg-transparent
+                    bg-white
                     border-2
-                    border-gray-700
                     rounded-md
                     outline-none
                     transition
+                    focus:border-rose-300
+                    focus:ring-rose-300
                     focus:ring-opacity-50
                     disabled:opacity-70
                     disabled:cursor-not-allowed

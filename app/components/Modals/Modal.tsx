@@ -6,7 +6,7 @@ import Button from "../Button";
 interface ModalProps {
     isOpen?: boolean,
     onClose: () => void;
-    onSubmit?: () => void;
+    onSubmit: () => void;
     title?: string;
     body?: React.ReactElement;
     footer?: React.ReactElement;
@@ -46,8 +46,7 @@ const Modal: React.FC<ModalProps> = ({
 
     const HandleSubmit = useCallback(() => {
         if (disabled) return
-
-        // onSubmit()
+        onSubmit()
     }, [disabled, onSubmit])
 
     const HandleSecondaryAction = useCallback(() => {
@@ -69,16 +68,20 @@ const Modal: React.FC<ModalProps> = ({
                     ${showModal ? 'opacity-100' : 'opacity-0'}
                     `}>
                         <div className="translate h-full lg:h-auto md:h-auto
-                        border-0
-                        rounded-lg
-                        shadow-lg
-                        relative
-                        flex
-                        flex-col
-                        w-full
-                        bg-white
-                        outline-none
-                        focus:outline-none">
+            rounded-lg
+            shadow-lg
+            relative
+            flex
+            flex-col
+            w-full
+            bg-opacity-10  
+            backdrop-blur-lg  
+            bg-gray-900 
+            text-white
+            border
+            border-gray-900
+            outline-none
+            focus:outline-none">
                             <div className="flex
                             item-center
                             p-6
@@ -86,6 +89,7 @@ const Modal: React.FC<ModalProps> = ({
                             justify-center
                             relative
                             border-b-[1px]
+            border-gray-900
                             ">
                                 <button className="p-1
                                 border-0

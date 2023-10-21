@@ -1,8 +1,15 @@
 
+import Navbar from './components/Navigation/Navbar'
+import RegisterModel from './components/Modals/RegisterModel'
+import LandingPage from './components/LandingPage'
+import LoginModal from './components/Modals/LoginModel'
+
 export default function Home() {
   return (
     <>
-      <h1 className='text-rose-500'>My Next Js</h1>
+      <RegisterModel />
+      <LoginModal />
+      <Navbar />
     </>
   )
 }
