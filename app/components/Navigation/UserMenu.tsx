@@ -33,6 +33,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ username, avatar, name }) => {
                 flex
                 flex-row
                 items-center
+                justify-between
                 gap-3
                 ">
                     <div
@@ -67,7 +68,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ username, avatar, name }) => {
                     {(name && avatar) ?
                         <div
                             className="
-                        p-4
+                        p-3
                         md:py-1
                         md:px-3
                         flex
@@ -82,7 +83,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ username, avatar, name }) => {
                         hover:bg-white
                         hover:text-black
                         shadow-inner
-                        
                         ">
                             {name}
                             <div

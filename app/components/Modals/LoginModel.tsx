@@ -73,13 +73,15 @@ const LoginModalCom: React.FC<LoginModalProps> = ({ }) => {
 
 
     const GetAccessToken = async (code: any) => {
-        const Response = await fetch("http://127.0.0.1:5000/users/getGithubAccessToken?code=" + code, {
+        const Response = await fetch("http://127.0.0.1:3001/users/getGithubAccessToken?code=" + code, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
             }
         });
         const Data = await Response.json();
+        console.log(Data)
+        console.log(Data.data)
         if (Data.data) {
             localStorage.setItem('accessToken', Data.data);
             setReRender(!reRender)
