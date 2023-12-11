@@ -1,7 +1,5 @@
 'use client'
-import { useState, useEffect } from "react";
-import Logo from "./Navigation/Logo";
-import MenuItem from "./Navigation/MenuItem";
+import { useEffect, useState } from "react";
 import UserMenu from "./Navigation/UserMenu";
 
 export default () => {
