@@ -59,7 +59,7 @@ export default function Navbar() {
         setPageIndex(index);
     };
 
-    const [selectedCloud, setSelectedCloud] = React.useState("");
+    const [selectedCloud, setSelectedCloud] = React.useState("AWS");
 
     interface AWSForm {
         AccessKey: string;
