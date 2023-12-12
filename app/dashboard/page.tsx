@@ -6,6 +6,7 @@ import Navigation from '../components/Navigation'
 
 import { GenerateSSHKeys, GenerateProviderFile, GenerateMainTerraformScript, TerraformPlan, TerraformApply, GetAWSData } from './SSHKeys'
 import { GenerateDOCProviderFile, ConfigureDOCProviderFile, AddSSHKeyToDOCProviderFile, AddVolumesToDOCProviderFile, AddOutputsToDOCProviderFile, GetDOCData } from './digitaloceanAPIs'
+import { GenerateInventoryFile, GeneratePlaybookFile, RunPlaybook } from './ansibleAPIS'
 
 export default function Navbar() {
 
@@ -187,6 +188,25 @@ export default function Navbar() {
             isSuccess: false,
             isError: false,
             description: "This step will take some time to complete"
+        },
+        "Generating Ansible Inventory File": {
+            timetaken: "0.00s",
+            isLoading: false,
+            isSuccess: false,
+            isError: false,
+        },
+        "Generating Ansible Playbook File": {
+            timetaken: "0.00s",
+            isLoading: false,
+            isSuccess: false,
+            isError: false,
+        },
+        "Running Ansible Playbook": {
+            timetaken: "0.00s",
+            isLoading: false,
+            isSuccess: false,
+            isError: false,
+            description: "This step will take some time to complete"
         }
     });
 
@@ -245,6 +265,25 @@ export default function Navbar() {
             isSuccess: false,
             isError: false,
             description: "This step will take some time to complete"
+        },
+        "Generating Ansible Inventory File": {
+            timetaken: "0.00s",
+            isLoading: false,
+            isSuccess: false,
+            isError: false,
+        },
+        "Generating Ansible Playbook File": {
+            timetaken: "0.00s",
+            isLoading: false,
+            isSuccess: false,
+            isError: false,
+        },
+        "Running Ansible Playbook": {
+            timetaken: "0.00s",
+            isLoading: false,
+            isSuccess: false,
+            isError: false,
+            description: "This step will take some time to complete"
         }
     });
 
@@ -296,6 +335,13 @@ export default function Navbar() {
             else if (selectedCloud === "DigitalOcean" && step === 'Terraform Apply') {
                 DigitalOceanSteps[step].description = res.data.description;
             }
+
+            if (selectedCloud === "AWS" && step === 'Running Ansible Playbook') {
+
+                AWSSteps[step].description = res.data.description;
+                setAWSSteps({ ...AWSSteps });
+            }
+
             updateStepStatus(step, isLoading, isSuccess, isError, performance.getEntriesByName('Execution Time')[0].duration);
             return isSuccess;
         } catch (err) {
@@ -419,6 +465,17 @@ export default function Navbar() {
                         instanceVPC: AWSData.data.instanceVPC,
                         instanceSecurityGroup: AWSData.data.instanceSecurityGroup,
                     })
+                    if (AWSData.data.instancePublicIP !== "") {
+                        GenerateAnsibleInventoryFile(AWSData.data.instancePublicIP).then((res) => {
+                            if (res) {
+                                GenerateAnsiblePlaybookFile().then((res) => {
+                                    if (res) {
+                                        RunAnsiblePlaybook()
+                                    }
+                                })
+                            }
+                        })
+                    }
                     return true
                 }
                 else {
@@ -464,6 +521,17 @@ export default function Navbar() {
                         instancePrivateIP: DOCData.data.instancePrivateIP,
                         instanceIpv6: DOCData.data.instanceIpv6,
                     })
+                    if (DOCData.data.instancePublicIP !== "") {
+                        GenerateAnsibleInventoryFile(DOCData.data.instancePublicIP).then((res) => {
+                            if (res) {
+                                GenerateAnsiblePlaybookFile().then((res) => {
+                                    if (res) {
+                                        RunDOCAnisiblePlaybook()
+                                    }
+                                })
+                            }
+                        })
+                    }
                     return true
                 }
                 else {
@@ -482,6 +550,108 @@ export default function Navbar() {
         });
         return false
     }
+
+    const GenerateAnsibleInventoryFile = async (publicIP: string): Promise<boolean> => {
+        const step = 'Generating Ansible Inventory File';
+        performance.mark('start6');
+        let user = "root"
+        if (selectedCloud === "AWS") {
+            user = "ubuntu"
+        }
+        if (selectedCloud === "DigitalOcean") {
+            user = "root"
+        }
+        const isSuccess = await performStep(step, () => GenerateInventoryFile(selectedCloud, publicIP, user));
+        if (isSuccess && selectedCloud === "AWS") {
+            AWSSteps['Generating Ansible Playbook File'].isLoading = true;
+            return true
+        }
+        else if (isSuccess && selectedCloud === "DigitalOcean") {
+            DigitalOceanSteps['Generating Ansible Playbook File'].isLoading = true;
+            return true
+        }
+        return false
+    }
+
+    const GenerateAnsiblePlaybookFile = async (): Promise<boolean> => {
+        const step = 'Generating Ansible Playbook File';
+        performance.mark('start7');
+        const isSuccess = await performStep(step, () => GeneratePlaybookFile());
+        if (isSuccess && selectedCloud === "AWS") {
+            AWSSteps['Running Ansible Playbook'].isLoading = true;
+            return true
+        }
+        else if (isSuccess && selectedCloud === "DigitalOcean") {
+            DigitalOceanSteps['Running Ansible Playbook'].isLoading = true;
+            return true
+        }
+        return false
+    }
+
+    const RunAnsiblePlaybook = async (): Promise<boolean> => {
+        const step = 'Running Ansible Playbook';
+        performance.mark('start8');
+        const response = await RunPlaybook();      
+        console.log(response)  
+        if(response.data.success){
+            performance.mark('end8');
+            performance.measure('Execution Time8', 'start8', 'end8');
+            AWSSteps[step].timetaken = `${performance.getEntriesByName('Execution Time8')[0].duration.toFixed(1)}s`
+            AWSSteps[step].isLoading = false;
+            AWSSteps[step].isSuccess = true;
+            AWSSteps[step].isError = false;
+            updateStepStatus(step, false, true, false, performance.getEntriesByName('Execution Time8')[0].duration);
+            AWSSteps[step].description = response.data.description;
+            setAWSSteps({ ...AWSSteps });
+            return true
+        }
+        else {
+            performance.mark('end8');
+            performance.measure('Execution Time8', 'start8', 'end8');
+            AWSSteps[step].timetaken = `${performance.getEntriesByName('Execution Time8')[0].duration.toFixed(1)}s`
+            AWSSteps[step].isLoading = false;
+            AWSSteps[step].isSuccess = false;
+            AWSSteps[step].isError = true;
+            updateStepStatus(step, false, false, true, performance.getEntriesByName('Execution Time8')[0].duration);
+            AWSSteps[step].description = response.data.description;
+            setAWSSteps({ ...AWSSteps });
+            return false
+        }            
+    }
+
+    const RunDOCAnisiblePlaybook = async (): Promise<boolean> => {
+        const step = 'Running Ansible Playbook';
+        performance.mark('start8');
+        const response = await RunPlaybook();      
+        console.log(response)
+        if(response.data.success){
+            performance.mark('end8');
+            performance.measure('Execution Time8', 'start8', 'end8');
+            DigitalOceanSteps[step].timetaken = `${performance.getEntriesByName('Execution Time8')[0].duration.toFixed(1)}s`
+            DigitalOceanSteps[step].isLoading = false;
+            DigitalOceanSteps[step].isSuccess = true;
+            DigitalOceanSteps[step].isError = false;
+            updateStepStatus(step, false, true, false, performance.getEntriesByName('Execution Time8')[0].duration);
+            DigitalOceanSteps[step].description = response.data.description;
+            setDigitalOceanSteps({ ...DigitalOceanSteps });
+            return true
+        }
+        else {
+            performance.mark('end8');
+            performance.measure('Execution Time8', 'start8', 'end8');
+            DigitalOceanSteps[step].timetaken = `${performance.getEntriesByName('Execution Time8')[0].duration.toFixed(1)}s`
+            DigitalOceanSteps[step].isLoading = false;
+            DigitalOceanSteps[step].isSuccess = false;
+            DigitalOceanSteps[step].isError = true;
+            updateStepStatus(step, false, false, true, performance.getEntriesByName('Execution Time8')[0].duration);
+            DigitalOceanSteps[step].description = response.data.description;
+            setDigitalOceanSteps({ ...DigitalOceanSteps });
+            return false
+        }
+    }
+
+
+
 
 
     const GenerateDigitalOceanProviderFile = async (): Promise<boolean> => {
@@ -538,6 +708,8 @@ export default function Navbar() {
         }
         return false
     }
+
+
 
 
 
@@ -635,9 +807,6 @@ export default function Navbar() {
         document.body.appendChild(element);
         element.click();
     }
-
-
-
 
 
 
@@ -1121,6 +1290,43 @@ export default function Navbar() {
                                         </svg>
                                     </div>
                                 </div>
+                                {AWSSteps['Running Ansible Playbook'].isSuccess && 
+                                <div className={`w-4/5
+                                        mt-5
+                                        text-sm
+                                        text-white 
+                                        mx-auto
+                                        flex flex-row
+                                        font-vt323
+                                        gap-4
+                                        items-center
+                                        justify-between
+                                        border
+                                        border-white
+                                        p-4`}
+                                            >
+                                                <div>Access your Server: </div>
+                                                <div className='
+                                        flex
+                                        flex-row
+                                        gap-4
+                                        items-center
+                                        justify-between
+                                        '>
+                                            {`http://${AWSUserData.instancePublicIP}`}
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6" 
+                                            onClick={() => {
+                                                //open in new tab
+                                                window.open(`http://${AWSUserData.instancePublicIP}`, "_blank")
+                                            }}
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                }
+
+                                
                             </div>
                         </>
                     )}
@@ -1234,6 +1440,41 @@ export default function Navbar() {
                                         </svg>
                                     </div>
                                 </div>
+                                {DigitalOceanSteps['Running Ansible Playbook'].isSuccess &&
+                                    <div className={`w-4/5
+                                        mt-5
+                                        text-sm
+                                        text-white 
+                                        mx-auto
+                                        flex flex-row
+                                        font-vt323
+                                        gap-4
+                                        items-center
+                                        justify-between
+                                        border
+                                        border-white
+                                        p-4`}
+                                    >
+                                        <div>Access your Server: </div>
+                                        <div className='
+                                        flex
+                                        flex-row
+                                        gap-4
+                                        items-center
+                                        justify-between
+                                        '>
+                                            {`http://${DOCUserData.instancePublicIP}`}
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"
+                                                onClick={() => {
+                                                    //open in new tab
+                                                    window.open(`http://${DOCUserData.instancePublicIP}`, "_blank")
+                                                }}
+                                            >
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                }
                             </div>
 
                         </>
@@ -1287,8 +1528,15 @@ interface StepProps {
 const Step = ({ title, description, isLoading, isSuccess, isError, time }: StepProps) => {
     const TimeToMillseconds = parseFloat(time) / 1000;
 
+    if (isLoading === false && isError === false && isSuccess === false) {
+        return (
+            <>
+            </>
+        );
+    }
+    
     return (
-        <>
+        <>            
             <div className={`w-4/5 
         mx-auto
         flex flex-row
@@ -1303,42 +1551,55 @@ const Step = ({ title, description, isLoading, isSuccess, isError, time }: StepP
                     'mb-0'
                 )}
         `}>
-                {isLoading ? (
-                    <div className='flex flex-row gap-4 items-center'>
-                        <LoadingIcon />
-                        <h1 className='text-white'>{title === "Terraform Apply" ?
-                            "Infrastructure Provisioning" :
-                            title
-                        }</h1>
-                    </div>
-                ) : (
-                    <div className='flex flex-row gap-4 items-center'>
-                        {isSuccess ? (
-                            <SuccessIcon />
+                {
+                    isLoading ? (
+                        <div className='flex flex-row gap-4 items-center'>
+                            <LoadingIcon />
+                            <h1 className='text-white'>
+                                {title === "Terraform Apply"
+                                    ? "Infrastructure Provisioning"
+                                    : title
+                                }
+                            </h1>
+                        </div>
+                    ) : (
+                        isLoading === false && isError === false && isSuccess === false ? (
+                            <></>
                         ) : (
-                            <ErrorIcon />
-                        )}
-                        <h1 className='text-white'>{title === "Terraform Apply" ?
-                            "Infrastructure Provisioning" :
-                            title
-                        }</h1>
-                    </div>
-                )}
-                <div className='
-            text-white
-            text-sm
-            font-medium
-            '>
-                    Duration : {TimeToMillseconds.toFixed(1)}s
-                </div>
+                            <>
+                                <div className='flex flex-row gap-4 items-center'>
+                                    {isSuccess ? (
+                                        <SuccessIcon />
+                                    ) : (
+                                        <ErrorIcon />
+                                    )}
+                                    <h1 className='text-white'>
+                                        {title === "Terraform Apply"
+                                            ? "Infrastructure Provisioning"
+                                            : title
+                                        }
+                                    </h1>
+                                </div>
+                                <div className='
+                                    text-white
+                                    text-sm
+                                    font-medium
+                                    '>
+                                    Duration : {TimeToMillseconds.toFixed(1)}s
+                                </div>
+                            </>
+                        )
+                    )
+                }
             </div>
-            {description && (
+            {description && isLoading === false && isError === false && isSuccess === false ?
+                <></> :
                 <div className='w-4/5 mx-auto flex flex-row gap-4 items-center border border-gray-800 border-t-0 p-4 pt-0' >
                     <div className='text-white whitespace-pre-wrap bg-gray text-sm font-vt323'>
                         <pre>{description}</pre>
                     </div>
                 </div>
-            )}
+            }
         </>
     )
 }
