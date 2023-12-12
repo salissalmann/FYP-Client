@@ -7,7 +7,12 @@ const config: Config = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'vt323': ['VT323', 'monospace'],
+      },
+    }
+    ,
   },
   plugins: [],
 }

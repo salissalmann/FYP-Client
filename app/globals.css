@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 .btns-container {
     @apply flex flex-wrap items-center justify-center gap-5 pt-20 pb-4;
